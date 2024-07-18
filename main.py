@@ -13,6 +13,10 @@ MOD
 PUSH 0
 CMP
 IF DUB
+DUP
+SHOW
+DUB
+DUP
 SHOW
 """
 
@@ -24,7 +28,7 @@ class Interpreter:
 
     def run(self, line: str):
         toks = line.lstrip().split(None, 1)
-        # print(toks,self.defs,self.def_stack)
+        # print(toks,self.defs,self.def_stack,self.int_stack)
         if toks[0].strip().startswith(";"):
             print("Comment:", line)
         elif len(self.def_stack) > 0:
@@ -161,6 +165,11 @@ class Interpreter:
                     raise Exception(
                         f"{len(toks)}: Incorrect number of arguments for BEGIN!"
                     )
+            elif toks[0] in self.defs:
+                name = toks[0]
+                print(name.capitalize())
+                for def_line in self.defs[name]:
+                    self.run(def_line)
 
 
 def main():
