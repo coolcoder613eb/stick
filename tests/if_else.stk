@@ -1,0 +1,19 @@
+BEGIN YES
+    PUSH 100
+    SHOW
+    POP
+END
+
+BEGIN NO
+    PUSH -100
+    SHOW
+    POP
+END
+
+PUSH 1
+IF YES
+IF NO
+
+PUSH 0
+IF YES
+IF NO

@@ -1,0 +1,23 @@
+BEGIN INC
+    PUSH 1
+    ADD
+END
+
+BEGIN ADD_ONE
+    INC
+    SHOW
+    DUP
+    PUSH 10
+    CMP
+    NOT
+END
+
+BEGIN COUNT_TO_TEN
+    ; Starting value
+    PUSH 0
+    ; True for while
+    PUSH 1
+    WHILE ADD_ONE
+END
+
+COUNT_TO_TEN

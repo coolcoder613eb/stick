@@ -1,0 +1,27 @@
+BEGIN FACT
+    ; Does N = 0?
+    DUP
+    PUSH 0
+    CMP
+    ; It does, so return 1
+    IF EQ_TO_ZERO
+    BEGIN EQ_TO_ZERO
+        POP
+        PUSH 1
+    END
+    ; It doesn't
+    IF NOT_ZERO
+    BEGIN NOT_ZERO
+        DUP
+        PUSH 1
+        SUB
+        FACT
+        MUL
+    END
+    POP
+
+END
+
+PUSH 5
+FACT
+SHOW

@@ -3,25 +3,6 @@ from typing import Dict, List
 VERSION="0.1"
 DEBUG=False
 
-test_code = """PUSH 8
-; Doubling routine
-BEGIN DUB
-DUP
-ADD
-END
-DUP
-PUSH 2
-; Modulo
-MOD
-PUSH 0
-CMP
-IF DUB
-SHOW
-DUB
-SHOW
-"""
-
-
 class StickError(SyntaxError):
     pass
 
@@ -37,21 +18,33 @@ class Interpreter:
 
     def run(self, line: str):
         toks = line.lstrip().split(None, 1)
-        # dprint(toks,self.defs,self.def_stack,self.int_stack)
-        if toks[0].strip().startswith(";"):
+        dprint(self.int_stack)
+        if line.strip()=="":
+            dprint("Empty line.")
+        elif toks[0].strip().startswith(";"):
             dprint("Comment:", line)
+        elif toks[0].upper() == "BEGIN":
+            if len(toks) == 2:
+                name = toks[1]
+                dprint("Begin:", name)
+                self.def_stack.append(name)
+                self.defs[name] = []
+            else:
+                raise StickError(
+                    f"{len(toks)}: Incorrect number of arguments for BEGIN!"
+                )
         elif len(self.def_stack) > 0:
-            if len(self.def_stack) == 1:
-                if toks[0].upper() == "END":
-                    if len(toks) > 0 and len(toks) < 3:
-                        dprint("End:", self.def_stack[-1])
-                        self.def_stack.pop()
-                        return
-                    else:
-                        raise StickError(
-                            f"{len(toks)}: Incorrect number of arguments for END!"
-                        )
-            self.defs[self.def_stack[-1]].append(line)
+            if toks[0].upper() == "END":
+                if len(toks) > 0 and len(toks) < 3:
+                    dprint("End:", self.def_stack[-1])
+                    self.def_stack.pop()
+                    return
+                else:
+                    raise StickError(
+                        f"{len(toks)}: Incorrect number of arguments for END!"
+                    )
+            else:
+                self.defs[self.def_stack[-1]].append(line)
         elif len(self.def_stack) == 0:
             if toks[0].upper() == "PUSH":
                 if len(toks) == 2:
@@ -83,14 +76,32 @@ class Interpreter:
                     name = toks[1]
                     if name in self.defs:
                         dprint("If:", name)
-                        if self.int_stack.pop():
+                        cond = self.int_stack.pop()
+                        if cond:
                             for def_line in self.defs[name]:
                                 self.run(def_line)
+                        self.int_stack.append(int(not cond))
                     else:
                         raise StickError(f"{name}: Unknown Label!")
                 else:
                     raise StickError(
-                        f"{len(toks)}: Incorrect number of arguments for BEGIN!"
+                        f"{len(toks)}: Incorrect number of arguments for IF!"
+                    )
+            elif toks[0].upper() == "WHILE":
+                if len(toks) == 2:
+                    name = toks[1]
+                    if name in self.defs:
+                        dprint("While:", name)
+                        cond = self.int_stack.pop()
+                        while cond:
+                            for def_line in self.defs[name]:
+                                self.run(def_line)
+                            cond = self.int_stack.pop()
+                    else:
+                        raise StickError(f"{name}: Unknown Label!")
+                else:
+                    raise StickError(
+                        f"{len(toks)}: Incorrect number of arguments for WHILE!"
                     )
             elif toks[0].upper() == "DUP":
                 if len(toks) == 1:
@@ -172,15 +183,15 @@ class Interpreter:
                     raise StickError(
                         f"{len(toks)}: Incorrect number of arguments for OR!"
                     )
-            elif toks[0].upper() == "BEGIN":
-                if len(toks) == 2:
-                    name = toks[1]
-                    dprint("Begin:", name)
-                    self.def_stack.append(name)
-                    self.defs[name] = []
+            elif toks[0].upper() == "NOT":
+                if len(toks) == 1:
+                    dprint("Not")
+                    self.int_stack.append(
+                        int(not self.int_stack.pop())
+                    )
                 else:
                     raise StickError(
-                        f"{len(toks)}: Incorrect number of arguments for BEGIN!"
+                        f"{len(toks)}: Incorrect number of arguments for NOT!"
                     )
             elif toks[0] in self.defs:
                 name = toks[0]
@@ -204,13 +215,6 @@ def print_attrs(interp):
     )
 
 
-def test():
-    interp = Interpreter()
-    for line in test_code.splitlines():
-        interp.run(line)
-    print_attrs(interp)
-
-
 def repl():
     interp = Interpreter()
     print(f"Stick {VERSION} REPL")
@@ -223,6 +227,9 @@ def repl():
                 interp.run(line)
         except StickError as e:
             print("Error:", e)
+        except EOFError:
+            print()
+            break
     print_attrs(interp)
 
 
