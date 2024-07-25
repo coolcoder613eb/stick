@@ -1,0 +1,26 @@
+BEGIN INC
+    PUSH 1
+    ADD
+END
+
+BEGIN ADD_ONE
+    INC
+    DUP
+    DUP
+    POKE
+    SHOW
+    DUP
+    PUSH 511
+    CMP
+    NOT
+END
+
+BEGIN COUNT_TO_TEN
+    ; Starting value
+    PUSH 0
+    ; True for while
+    PUSH 1
+    WHILE ADD_ONE
+END
+
+COUNT_TO_TEN

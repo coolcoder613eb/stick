@@ -15,10 +15,10 @@ class Interpreter:
     int_stack = []
     def_stack = []
     defs: Dict[str, List] = {}
+    memory=[0]*512
 
     def run(self, line: str):
         toks = line.lstrip().split(None, 1)
-        dprint(self.int_stack)
         if line.strip()=="":
             dprint("Empty line.")
         elif toks[0].strip().startswith(";"):
@@ -62,6 +62,25 @@ class Interpreter:
                 else:
                     raise StickError(
                         f"{len(toks)}: Incorrect number of arguments for POP!"
+                    )
+            elif toks[0].upper() == "POKE":
+                if len(toks) == 1:
+                    addr=self.int_stack.pop()
+                    value=self.int_stack.pop()
+                    dprint("Poke:",addr,'=',value)
+                    self.memory[addr]=value
+                else:
+                    raise StickError(
+                        f"{len(toks)}: Incorrect number of arguments for POKE!"
+                    )
+            elif toks[0].upper() == "PEEK":
+                if len(toks) == 1:
+                    addr=self.int_stack.pop()
+                    dprint("Peek:",addr)
+                    self.int_stack.append(self.memory[addr])
+                else:
+                    raise StickError(
+                        f"{len(toks)}: Incorrect number of arguments for PEEK!"
                     )
             elif toks[0].upper() == "SHOW":
                 if len(toks) == 1:
@@ -200,6 +219,7 @@ class Interpreter:
                     self.run(def_line)
             else:
                 raise StickError(f"{toks[0]}: Unrecognised command!")
+        dprint(self.int_stack)
 
 
 def print_attrs(interp):
@@ -216,12 +236,13 @@ def print_attrs(interp):
 
 
 def repl():
+    import readline
     interp = Interpreter()
     print(f"Stick {VERSION} REPL")
     while True:
         try:
             line = input(". " if len(interp.def_stack) > 0 else "> ")
-            if line.upper == "BYE":
+            if line.upper() == "BYE":
                 break
             else:
                 interp.run(line)
